@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "web-search": {
+      "command": "npx",
+      "args": ["-y", "mcp-search-tools", "mcp-search-server"],
+      "env": {}
+    },
+    "web-search-local": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-web-tools/dist/server/index.js"],
+      "env": {}
+    }
+  }
+}

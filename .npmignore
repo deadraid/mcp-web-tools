@@ -1,0 +1,33 @@
+# Source files
+src/
+*.ts
+!dist/**/*.d.ts
+
+# Development files
+.vscode/
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Tests
+coverage/
+.nyc_output/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Documentation
+docs/
+examples/
+
+# Git
+.git/
+.gitignore

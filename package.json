@@ -1,0 +1,82 @@
+{
+  "name": "mcp-search-tools",
+  "version": "1.0.4",
+  "description": "MCP server and client for web search and page viewing tools - DuckDuckGo search and web scraping",
+  "type": "module",
+  "main": "dist/client/index.js",
+  "types": "dist/client/index.d.ts",
+  "bin": {
+    "mcp-search-server": "dist/server/index.js",
+    "mcp-search-client": "dist/client/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/client/index.js",
+      "types": "./dist/client/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server/index.js",
+      "types": "./dist/server/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "USAGE.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start:server": "node dist/server/index.js",
+    "start:client": "node dist/client/index.js",
+    "clean": "rm -rf dist",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts --fix",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.16.0",
+    "@spider-rs/spider-rs": "^0.0.157",
+    "cheerio": "^1.1.1",
+    "node-fetch": "^3.3.2",
+    "p-limit": "^6.2.0",
+    "turndown": "^7.2.0",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.15",
+    "@types/turndown": "^5.0.5",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.3",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "web-search",
+    "web-scraping",
+    "duckduckgo",
+    "ai-tools",
+    "agent-tools",
+    "claude-desktop"
+  ],
+  "author": "deadraid",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deadraid/mcp-web-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/deadraid/mcp-web-tools/issues"
+  },
+  "homepage": "https://github.com/deadraid/mcp-web-tools#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
