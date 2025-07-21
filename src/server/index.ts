@@ -175,14 +175,11 @@ async function main() {
   console.error('MCP Web Tools server started');
 }
 
-// Determine if the script is being run directly
-const isMainModule = import.meta.url.includes(process.argv[1]);
-
-if (isMainModule) {
-  main().catch((error) => {
-    console.error('Server error:', error);
-    process.exit(1);
-  });
-}
+// Always run the server when executed directly
+// This fixes issues with npx and ESM module detection
+main().catch((error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
 
 export { server };
