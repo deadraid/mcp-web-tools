@@ -26,8 +26,7 @@ const server = new Server(
   {
     name: 'mcp-web-tools',
     version: '1.0.0',
-    description:
-      'Provides web search and web page access tools for internet connectivity',
+    description: 'MCP server providing web search and page access tools',
     categories: ['internet', 'web'],
   },
   {
@@ -38,15 +37,33 @@ const server = new Server(
 );
 
 /**
- * List available tools. This handler is synchronous, so we remove the
- * unnecessary `async` keyword to satisfy `@typescript-eslint/require-await`.
+ * List available tools with LLM-friendly descriptions
  */
 server.setRequestHandler(ListToolsRequestSchema, () => {
   return {
     tools: [
       {
         name: 'web_search',
-        description: 'Search the web using DuckDuckGo',
+        description: `
+Search the web using DuckDuckGo for any query.
+
+**Best for:** Finding information across the web, researching topics, getting current information.
+**Not recommended for:** When you already know the exact URL you need (use web_page instead).
+**Common mistakes:** Using web_search when you have a specific URL to scrape.
+**Prompt Example:** "Search for latest TypeScript features released in 2024"
+**Usage Example:**
+\`\`\`json
+{
+  "name": "web_search",
+  "arguments": {
+    "query": "latest TypeScript features 2024",
+    "maxResults": 5,
+    "time": "m"
+  }
+}
+\`\`\`
+**Returns:** Search results with titles, URLs, and descriptions.
+`,
         inputSchema: {
           type: 'object',
           properties: {
@@ -67,8 +84,7 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
             },
             maxRetries: {
               type: 'number',
-              description:
-                'Maximum number of retry attempts for failed requests',
+              description: 'Maximum retry attempts',
               default: mcpConfig.defaults.maxRetries,
             },
             retryDelay: {
@@ -82,7 +98,26 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
       },
       {
         name: 'web_page',
-        description: 'Fetch and extract content from a web page',
+        description: `
+Fetch and extract content from a specific web page URL.
+
+**Best for:** Getting full content from a known URL, extracting article text, documentation, or specific page content.
+**Not recommended for:** When you don't know the exact URL (use web_search first).
+**Common mistakes:** Using web_page for general web searches instead of specific URLs.
+**Prompt Example:** "Get the content from https://docs.python.org/3/library/asyncio.html"
+**Usage Example:**
+\`\`\`json
+{
+  "name": "web_page",
+  "arguments": {
+    "url": "https://docs.python.org/3/library/asyncio.html",
+    "maxLength": 3000,
+    "includeLinks": true
+  }
+}
+\`\`\`
+**Returns:** Page content in markdown format with optional links and metadata.
+`,
         inputSchema: {
           type: 'object',
           properties: {
@@ -107,8 +142,7 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
             },
             maxRetries: {
               type: 'number',
-              description:
-                'Maximum number of retry attempts for failed requests',
+              description: 'Maximum retry attempts',
               default: mcpConfig.defaults.maxRetries,
             },
             retryDelay: {
@@ -148,7 +182,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `Invalid input: ${error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           },
         ],
@@ -159,7 +193,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       content: [
         {
-          type: 'text' as const,
+          type: 'text',
           text: `Error: ${error instanceof Error ? error.message : String(error)}`,
         },
       ],
@@ -176,7 +210,6 @@ async function main() {
 }
 
 // Always run the server when executed directly
-// This fixes issues with npx and ESM module detection
 main().catch((error) => {
   console.error('Server error:', error);
   process.exit(1);
