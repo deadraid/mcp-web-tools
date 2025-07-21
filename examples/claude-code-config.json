@@ -2,8 +2,7 @@
   "mcpServers": {
     "web-search": {
       "command": "npx",
-      "args": ["-y", "mcp-search-server"],
-      "env": {}
+      "args": ["-y", "mcp-search-server"]
     }
   }
 }

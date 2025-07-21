@@ -1,37 +1,36 @@
 # MCP Search Tools - Usage Guide
 
-## Installation
+## Quick Start
 
-### As NPM Package
-```bash
-npm install mcp-search-tools
-```
+### Universal MCP Configuration
+All modern AI editors use the same MCP configuration format. Add this configuration to your editor's settings:
 
-### As MCP Server
-```bash
-# Global installation
-npm install -g mcp-search-tools
-
-# Run server
-mcp-search-server
-```
-
-### In Claude Desktop
-Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
     "web-search": {
       "command": "npx",
-      "args": ["-y", "mcp-search-tools", "mcp-search-server"]
+      "args": ["-y", "mcp-search-server"]
     }
   }
 }
 ```
 
-> Полный исходный код: [github.com/deadraid/mcp-search-tools](https://github.com/deadraid/mcp-search-tools)
+### Editor-Specific Locations
 
-## Usage in Your Agent
+| Editor | Configuration File Location |
+|--------|----------------------------|
+| **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) |
+| **Cursor** | Settings > MCP > Add Server |
+| **Claude Code** | `.claude.json` in project root |
+| **Windsurf** | `.windsurfrc` in project root |
+| **Cline** | `.cline/mcp.json` in project root |
+| **Zed** | Settings > Extensions > MCP |
+
+### Installation
+No installation required! The server works directly with npx.
+
+## Usage Examples
 
 ### As Library
 ```typescript
@@ -57,11 +56,9 @@ const pageContent = await client.fetchWebPage({
 ```typescript
 import { spawn } from 'child_process';
 
-const server = spawn('npx', ['mcp-search-server'], {
+const server = spawn('npx', ['-y', 'mcp-search-server'], {
   stdio: ['pipe', 'pipe', 'pipe']
 });
-
-// Use with MCP client
 ```
 
 ## API Reference
@@ -115,8 +112,17 @@ async function main() {
 main();
 ```
 
-### With Claude Desktop
-1. Install package globally: `npm install -g mcp-search-tools`
-2. Add to Claude Desktop config
-3. Restart Claude Desktop
-4. Use web search and page fetching directly in conversations
+### Development Setup
+```bash
+# Clone repository
+git clone https://github.com/deadraid/mcp-web-tools.git
+cd mcp-web-tools
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Run server
+npm run start:server
