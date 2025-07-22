@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { withRetry } from '../utils/retry.js';
 
 export const webPageSchema = z.object({
-  url: z.string().describe('URL of the web page to fetch'),
+  urls: z.array(z.string()).describe('URLs of the web pages to fetch'),
   includeImages: z
     .boolean()
     .optional()
@@ -47,22 +47,40 @@ interface WebPageResult {
     author?: string;
     publishDate?: string;
   };
+  error?: string;
 }
 
 export async function webPageTool(input: WebPageInput) {
   try {
-    // Используем withRetry для повторных попыток
-    const result = await withRetry(
-      () => fetchWebPage(input),
-      input.maxRetries,
-      input.retryDelay
+    const results = await Promise.all(
+      input.urls.map(async (url) => {
+        try {
+          const result = await withRetry(
+            () => fetchWebPage({ ...input, url }),
+            input.maxRetries,
+            input.retryDelay
+          );
+          return result;
+        } catch (error) {
+          return {
+            url,
+            title: 'Error',
+            content: '',
+            metadata: {},
+            error:
+              error instanceof Error
+                ? error.message
+                : String(error) || 'Unknown error occurred',
+          };
+        }
+      })
     );
 
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(result, null, 2),
+          text: JSON.stringify(results, null, 2),
         },
       ],
     };
@@ -71,9 +89,19 @@ export async function webPageTool(input: WebPageInput) {
       content: [
         {
           type: 'text' as const,
-          text: `Error fetching web page after ${input.maxRetries} attempts: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          text: JSON.stringify(
+            [
+              {
+                url: input.urls[0],
+                title: 'Error',
+                content: '',
+                metadata: {},
+                error: error instanceof Error ? error.message : String(error),
+              },
+            ],
+            null,
+            2
+          ),
         },
       ],
       isError: true,
@@ -81,7 +109,9 @@ export async function webPageTool(input: WebPageInput) {
   }
 }
 
-async function fetchWebPage(input: WebPageInput): Promise<WebPageResult> {
+async function fetchWebPage(
+  input: WebPageInput & { url: string }
+): Promise<WebPageResult> {
   const { url, includeImages, includeLinks, maxLength } = input;
 
   const w = new Website(url)

@@ -37,10 +37,10 @@ async function main() {
       });
     }
 
-    // Example 2: Fetch web page
-    console.log('📄 Fetching example.com...');
+    // Example 2: Fetch web pages
+    console.log('📄 Fetching multiple pages...');
     const pageContent = await client.fetchWebPage({
-      url: 'https://example.com',
+      urls: ['https://example.com', 'https://example.org'],
       maxLength: 500
     });
 

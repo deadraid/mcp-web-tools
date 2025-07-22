@@ -51,7 +51,7 @@ class AIAgent {
       try {
         console.log(`📄 Fetching: ${result.title}`);
         const pageContent = await this.client.fetchWebPage({
-          url: result.url,
+          urls: [result.url],
           maxLength: 1000
         });
         

@@ -110,7 +110,7 @@ Fetch and extract content from a specific web page URL.
 {
   "name": "web_page",
   "arguments": {
-    "url": "https://docs.python.org/3/library/asyncio.html",
+    "urls": ["https://docs.python.org/3/library/asyncio.html", "https://example.com"],
     "maxLength": 3000,
     "includeLinks": true
   }
@@ -121,9 +121,10 @@ Fetch and extract content from a specific web page URL.
         inputSchema: {
           type: 'object',
           properties: {
-            url: {
-              type: 'string',
-              description: 'URL of the web page to fetch',
+            urls: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'URLs of the web pages to fetch',
             },
             maxLength: {
               type: 'number',
@@ -151,7 +152,7 @@ Fetch and extract content from a specific web page URL.
               default: mcpConfig.defaults.retryDelay,
             },
           },
-          required: ['url'],
+          required: ['urls'],
         },
       },
     ],
