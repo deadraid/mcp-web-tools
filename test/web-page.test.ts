@@ -40,6 +40,7 @@ describe('webPageTool', () => {
       maxLength: 1000,
       maxRetries: 3,
       retryDelay: 1000,
+      concurrency: 5,
     });
 
     await vi.runAllTimersAsync();
@@ -64,6 +65,7 @@ describe('webPageTool', () => {
       maxLength: 1000,
       maxRetries: 3,
       retryDelay: 1000,
+      concurrency: 5,
     });
 
     await vi.runAllTimersAsync();
@@ -100,6 +102,7 @@ describe('webPageTool', () => {
       maxLength: 1000,
       maxRetries: 3,
       retryDelay: 1000,
+      concurrency: 5,
     });
 
     await vi.runAllTimersAsync();
@@ -155,6 +158,7 @@ describe('webPageTool', () => {
       maxLength: 1000,
       maxRetries: 3,
       retryDelay: 1000,
+      concurrency: 5,
     });
 
     await vi.runAllTimersAsync();
@@ -202,6 +206,7 @@ describe('webPageTool', () => {
       maxLength: 50,
       maxRetries: 3,
       retryDelay: 1000,
+      concurrency: 5,
     });
 
     await vi.runAllTimersAsync();

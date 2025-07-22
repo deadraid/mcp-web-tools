@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import { z } from 'zod';
 
 import { withRetry } from '../utils/retry.js';
+import pLimit from 'p-limit';
 
 export const webPageSchema = z.object({
   urls: z.array(z.string()).describe('URLs of the web pages to fetch'),
@@ -31,6 +32,11 @@ export const webPageSchema = z.object({
     .optional()
     .default(1000)
     .describe('Base delay in milliseconds between retry attempts'),
+  concurrency: z
+    .number()
+    .optional()
+    .default(5)
+    .describe('Maximum number of parallel requests'),
 });
 
 export type WebPageInput = z.infer<typeof webPageSchema>;
@@ -51,62 +57,54 @@ interface WebPageResult {
 }
 
 export async function webPageTool(input: WebPageInput) {
-  try {
-    const results = await Promise.all(
-      input.urls.map(async (url) => {
-        try {
-          const result = await withRetry(
-            () => fetchWebPage({ ...input, url }),
-            input.maxRetries,
-            input.retryDelay
-          );
-          return result;
-        } catch (error) {
-          return {
-            url,
-            title: 'Error',
-            content: '',
-            metadata: {},
-            error:
-              error instanceof Error
-                ? error.message
-                : String(error) || 'Unknown error occurred',
-          };
-        }
-      })
-    );
+  const limit = pLimit(input.concurrency);
+  const tasks = input.urls.map((url) =>
+    limit(async () => {
+      try {
+        return await withRetry(
+          () => fetchWebPage({ ...input, url }),
+          input.maxRetries,
+          input.retryDelay
+        );
+      } catch (error) {
+        return {
+          url,
+          title: 'Error',
+          content: '',
+          metadata: {},
+          error:
+            error instanceof Error
+              ? error.message
+              : String(error) || 'Unknown error occurred',
+        } as WebPageResult;
+      }
+    })
+  );
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(results, null, 2),
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify(
-            [
-              {
-                url: input.urls[0],
-                title: 'Error',
-                content: '',
-                metadata: {},
-                error: error instanceof Error ? error.message : String(error),
-              },
-            ],
-            null,
-            2
-          ),
-        },
-      ],
-      isError: true,
-    };
-  }
+  const settled = await Promise.allSettled(tasks);
+  const results: WebPageResult[] = settled.map((r, i) =>
+    r.status === 'fulfilled'
+      ? r.value
+      : {
+          url: input.urls[i],
+          title: 'Error',
+          content: '',
+          metadata: {},
+          error:
+            r.reason instanceof Error
+              ? r.reason.message
+              : String(r.reason) || 'Unknown error occurred',
+        }
+  );
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(results, null, 2),
+      },
+    ],
+  };
 }
 
 async function fetchWebPage(
