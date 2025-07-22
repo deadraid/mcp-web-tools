@@ -1,6 +1,6 @@
 {
   "name": "mcp-search-tools",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "MCP server and client for web search and page viewing tools - DuckDuckGo search and web scraping",
   "type": "module",
   "main": "dist/client/index.js",
