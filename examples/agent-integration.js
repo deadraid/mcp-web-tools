@@ -55,13 +55,27 @@ class AIAgent {
           maxLength: 1000
         });
         
+        if (pageContent.content?.[0]?.text) {
+          const pageResults = JSON.parse(pageContent.content[0].text);
+          detailedContent.push({
+            title: result.title,
+            url: result.url,
+            content: pageResults[0]?.content || 'No content available'
+          });
+        } else {
+          detailedContent.push({
+            title: result.title,
+            url: result.url,
+            content: 'No content available'
+          });
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to fetch ${result.url}: ${error.message}`);
         detailedContent.push({
           title: result.title,
           url: result.url,
-          content: pageContent.content?.[0]?.text || 'No content available'
+          content: `Error fetching content: ${error.message}`
         });
-      } catch (error) {
-        console.warn(`⚠️ Failed to fetch ${result.url}: ${error.message}`);
       }
     }
 
@@ -79,7 +93,7 @@ class AIAgent {
     
     // Here you would typically pass this to your LLM
     const context = research.detailedContent
-      .map(item => `Source: ${item.title}\n${item.content}`)
+      .map(item => `Source: ${item.title}\n${item.content.substring(0, 500)}`)
       .join('\n\n---\n\n');
     
     return {
@@ -91,6 +105,37 @@ class AIAgent {
       context
     };
   }
+
+  async downloadResearchSources(topic, directory) {
+    console.log(`📥 Downloading sources for: ${topic}`);
+    
+    // First, search for information
+    const searchResults = await this.client.searchWeb({
+      query: topic,
+      maxResults: 3
+    });
+
+    if (!searchResults.content?.[0]) {
+      throw new Error('No search results');
+    }
+
+    const results = JSON.parse(searchResults.content[0].text);
+    
+    // Extract URLs from search results
+    const urls = results.results.map(result => result.url);
+    
+    // Download files
+    const downloadResults = await this.client.downloadFiles({
+      urls: urls,
+      directory: directory
+    });
+    
+    if (downloadResults.content?.[0]?.text) {
+      return JSON.parse(downloadResults.content[0].text);
+    }
+    
+    return [];
+  }
 }
 
 // Demo usage
@@ -100,6 +145,7 @@ async function demo() {
   try {
     await agent.initialize();
     
+    // Research example
     const answer = await agent.answerQuestion(
       'What are the latest developments in AI for 2024?'
     );
@@ -109,6 +155,25 @@ async function demo() {
     answer.sources.forEach(source => {
       console.log(`  - ${source.title}: ${source.url}`);
     });
+    
+    // Download example (commented out)
+    /*
+    console.log('\n📥 Downloading sources...');
+    const downloadResults = await agent.downloadResearchSources(
+      'AI developments 2024',
+      './downloads'
+    );
+    
+    console.log(`Downloaded ${downloadResults.filter(r => r.success).length} files:`);
+    downloadResults.forEach(result => {
+      if (result.success) {
+        console.log(`  ✅ ${result.filename} (${result.size} bytes)`);
+      } else {
+        console.log(`  ❌ ${result.filename || result.url}: ${result.error}`);
+      }
+    });
+    */
+    console.log('\n📁 Download example commented out (requires valid directory)');
     
   } catch (error) {
     console.error('❌ Agent error:', error);

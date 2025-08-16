@@ -6,6 +6,7 @@ import type { ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { webPageSchema } from '../tools/web-page.js';
 import { webSearchSchema } from '../tools/web-search.js';
+import { downloadFilesSchema } from '../tools/download-files.js';
 
 interface WebSearchInput {
   query: string;
@@ -17,12 +18,23 @@ interface WebSearchInput {
 }
 
 interface WebPageInput {
-  url: string;
+  urls: string[];
   includeImages?: boolean;
   includeLinks?: boolean;
   maxLength?: number;
   maxRetries?: number;
   retryDelay?: number;
+  concurrency?: number;
+}
+
+interface DownloadFilesInput {
+  urls: string[];
+  directory: string;
+  filenames?: string[];
+  maxRetries?: number;
+  retryDelay?: number;
+  timeout?: number;
+  concurrency?: number;
 }
 
 export class MCPWebToolsClient {
@@ -88,6 +100,14 @@ export class MCPWebToolsClient {
       return false;
     }
   }
+
+  async downloadFiles(input: DownloadFilesInput): Promise<unknown> {
+    const validatedInput = downloadFilesSchema.parse(input);
+    return await this.client.callTool({
+      name: 'download_files',
+      arguments: validatedInput,
+    });
+  }
 }
 
 // Example usage
@@ -109,7 +129,7 @@ async function example() {
 
     // Example web page fetch
     const pageResult = await client.fetchWebPage({
-      url: 'https://example.com',
+      urls: ['https://example.com'],
       maxLength: 1000,
       includeImages: false,
       includeLinks: false,

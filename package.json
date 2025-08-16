@@ -1,6 +1,6 @@
 {
   "name": "mcp-search-tools",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "MCP server and client for web search and page viewing tools - DuckDuckGo search and web scraping",
   "type": "module",
   "main": "dist/client/index.js",
@@ -35,26 +35,26 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.16.0",
-    "@spider-rs/spider-rs": "^0.0.157",
-    "cheerio": "^1.1.1",
-    "node-fetch": "^3.3.2",
-    "p-limit": "^6.2.0",
-    "turndown": "^7.2.0",
-    "zod": "^4.0.5"
+    "@modelcontextprotocol/sdk": "1.17.3",
+    "@spider-rs/spider-rs": "0.0.157",
+    "cheerio": "1.1.2",
+    "node-fetch": "3.3.2",
+    "p-limit": "7.0.0",
+    "turndown": "7.2.1",
+    "zod": "4.0.17"
   },
   "devDependencies": {
-    "@types/node": "^24.0.15",
-    "@types/turndown": "^5.0.5",
-    "@typescript-eslint/eslint-plugin": "^8.37.0",
-    "@typescript-eslint/parser": "^8.37.0",
-    "eslint": "^9.31.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.3",
-    "prettier": "^3.6.2",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "@types/node": "24.3.0",
+    "@types/turndown": "5.0.5",
+    "@typescript-eslint/eslint-plugin": "8.39.1",
+    "@typescript-eslint/parser": "8.39.1",
+    "eslint": "9.33.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-prettier": "5.5.4",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
   },
   "keywords": [
     "mcp",

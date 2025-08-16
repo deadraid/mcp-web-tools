@@ -10,6 +10,10 @@ import { z } from 'zod';
 
 import { webPageTool, webPageSchema } from '../tools/web-page.js';
 import { webSearchTool, webSearchSchema } from '../tools/web-search.js';
+import {
+  downloadFilesTool,
+  downloadFilesSchema,
+} from '../tools/download-files.js';
 
 // Default configuration constants
 const DEFAULT_MAX_RETRIES = 3;
@@ -155,6 +159,69 @@ Fetch and extract content from a specific web page URL.
           required: ['urls'],
         },
       },
+      {
+        name: 'download_files',
+        description: `
+  Download one or more files from URLs to a specified directory.
+  
+  **Best for:** Downloading files from URLs to local storage with security and error handling.
+  **Not recommended for:** When you don't have permission to write to the target directory.
+  **Common mistakes:** Not specifying a valid directory path or providing invalid URLs.
+  **Prompt Example:** "Download these files to /tmp/downloads"
+  **Usage Example:**
+  \`\`\`json
+  {
+    "name": "download_files",
+    "arguments": {
+      "urls": ["https://example.com/file1.txt", "https://example.com/file2.pdf"],
+      "directory": "/tmp/downloads",
+      "filenames": ["custom1.txt", "custom2.pdf"],
+      "maxRetries": 3,
+      "retryDelay": 1000,
+      "timeout": 30000
+    }
+  }
+  \`\`\`
+  **Returns:** Download results with file paths, sizes, and success status.
+  `,
+        inputSchema: {
+          type: 'object',
+          properties: {
+            urls: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of URLs to download',
+            },
+            directory: {
+              type: 'string',
+              description: 'Target directory path for downloads',
+            },
+            filenames: {
+              type: 'array',
+              items: { type: 'string' },
+              description:
+                'Optional array of custom filenames (same length as urls)',
+            },
+            maxRetries: {
+              type: 'number',
+              description:
+                'Maximum number of retry attempts for failed downloads',
+              default: mcpConfig.defaults.maxRetries,
+            },
+            retryDelay: {
+              type: 'number',
+              description: 'Base delay in milliseconds between retry attempts',
+              default: mcpConfig.defaults.retryDelay,
+            },
+            timeout: {
+              type: 'number',
+              description: 'Request timeout in milliseconds',
+              default: 30000,
+            },
+          },
+          required: ['urls', 'directory'],
+        },
+      },
     ],
   };
 });
@@ -173,6 +240,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'web_page': {
         const pageInput = webPageSchema.parse(args);
         return await webPageTool(pageInput);
+      }
+
+      case 'download_files': {
+        const downloadInput = downloadFilesSchema.parse(args);
+        return await downloadFilesTool(downloadInput);
       }
 
       default:

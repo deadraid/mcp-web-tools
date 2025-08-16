@@ -47,7 +47,7 @@ const searchResults = await client.searchWeb({
 
 // Fetch web page
 const pageContent = await client.fetchWebPage({
-  url: 'https://example.com',
+  urls: ['https://example.com'],
   maxLength: 2000
 });
 ```
@@ -78,12 +78,26 @@ interface WebSearchInput {
 ### Web Page Tool
 ```typescript
 interface WebPageInput {
-  url: string;
+  urls: string[];
   maxLength?: number;
   includeImages?: boolean;
   includeLinks?: boolean;
   maxRetries?: number;
   retryDelay?: number;
+  concurrency?: number;
+}
+```
+
+### Download Files Tool
+```typescript
+interface DownloadFilesInput {
+  urls: string[];
+  directory: string;
+  filenames?: string[];
+  maxRetries?: number;
+  retryDelay?: number;
+  timeout?: number;
+  concurrency?: number;
 }
 ```
 
@@ -101,11 +115,30 @@ async function main() {
   const client = new MCPWebToolsClient();
   await client.connect();
   
-  const results = await client.searchWeb({
+  // Web search
+  const searchResults = await client.searchWeb({
     query: 'TypeScript best practices'
   });
   
-  console.log(results);
+  console.log(searchResults);
+  
+  // Fetch web page
+  const pageResults = await client.fetchWebPage({
+    urls: ['https://example.com']
+  });
+  
+  console.log(pageResults);
+  
+  // Download files (requires valid directory)
+  /*
+  const downloadResults = await client.downloadFiles({
+    urls: ['https://httpbin.org/json'],
+    directory: './downloads'
+  });
+  
+  console.log(downloadResults);
+  */
+  
   await client.disconnect();
 }
 
