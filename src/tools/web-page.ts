@@ -1,6 +1,7 @@
 import { Website } from '@spider-rs/spider-rs';
 import * as cheerio from 'cheerio';
 import { z } from 'zod';
+import TurndownService from 'turndown';
 
 import { withRetry } from '../utils/retry.js';
 import pLimit from 'p-limit';
@@ -137,33 +138,21 @@ async function fetchWebPage(
   // Extract title
   const title = $('title').text().trim() || 'No title found';
 
-  // Remove script and style elements
+  // Remove unwanted elements
   $('script, style, nav, footer, aside, .advertisement, .ads').remove();
 
-  // Extract main content
-  const contentSelectors = [
-    'main',
-    'article',
-    '[role="main"]',
-    '.content',
-    '.main-content',
-    '.post-content',
-    '.entry-content',
-    'body',
-  ];
+  // Try to find main content, fallback to body
+  const mainContent = $('main, article, [role="main"]').first();
+  const contentElement = mainContent.length ? mainContent : $('body');
 
-  let content = '';
-  for (const selector of contentSelectors) {
-    const element = $(selector);
-    if (element.length > 0) {
-      content = element.text().trim();
-      break;
-    }
-  }
+  // Initialize turndown service for markdown conversion
+  const turndownService = new TurndownService({
+    headingStyle: 'atx',
+    codeBlockStyle: 'fenced',
+  });
 
-  if (!content) {
-    content = $('body').text().trim();
-  }
+  // Convert HTML to markdown
+  let content = turndownService.turndown(contentElement.html() || '');
 
   // Truncate content if needed
   if (content.length > maxLength) {
@@ -183,7 +172,8 @@ async function fetchWebPage(
   // Extract images if requested
   let images: string[] | undefined;
   if (includeImages) {
-    images = $('img')
+    images = contentElement
+      .find('img')
       .map((_, img) => {
         const src = $(img).attr('src');
         if (src && !src.startsWith('data:')) {
@@ -202,7 +192,8 @@ async function fetchWebPage(
   // Extract links if requested
   let links: string[] | undefined;
   if (includeLinks) {
-    links = $('a[href]')
+    links = contentElement
+      .find('a[href]')
       .map((_, a) => {
         const href = $(a).attr('href');
         if (href && !href.startsWith('#') && !href.startsWith('mailto:')) {
