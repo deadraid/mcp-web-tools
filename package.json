@@ -1,6 +1,6 @@
 {
   "name": "mcp-search-tools",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "MCP server and client for web search and page viewing tools - DuckDuckGo search and web scraping",
   "type": "module",
   "main": "dist/client/index.js",
@@ -35,20 +35,20 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.17.3",
+    "@modelcontextprotocol/sdk": "1.17.5",
     "@spider-rs/spider-rs": "0.0.157",
     "cheerio": "1.1.2",
     "node-fetch": "3.3.2",
-    "p-limit": "7.0.0",
+    "p-limit": "7.1.1",
     "turndown": "7.2.1",
-    "zod": "4.0.17"
+    "zod": "4.1.5"
   },
   "devDependencies": {
-    "@types/node": "24.3.0",
+    "@types/node": "24.3.1",
     "@types/turndown": "5.0.5",
-    "@typescript-eslint/eslint-plugin": "8.39.1",
-    "@typescript-eslint/parser": "8.39.1",
-    "eslint": "9.33.0",
+    "@typescript-eslint/eslint-plugin": "8.43.0",
+    "@typescript-eslint/parser": "8.43.0",
+    "eslint": "9.35.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.4",
