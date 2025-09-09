@@ -141,20 +141,16 @@ async function fetchWebPage(
   // Remove unwanted elements
   $('script, style, nav, footer, aside, .advertisement, .ads').remove();
 
-  // Try to find main content, fallback to body
-  const mainContent = $('main, article, [role="main"]').first();
-  const contentElement = mainContent.length ? mainContent : $('body');
+  // Simple approach: get main content or body
+  const contentText =
+    $('main, article, [role="main"]').first().text().trim() ||
+    $('body').text().trim();
 
-  // Initialize turndown service for markdown conversion
-  const turndownService = new TurndownService({
-    headingStyle: 'atx',
-    codeBlockStyle: 'fenced',
-  });
+  // Convert to markdown using simple approach
+  const turndownService = new TurndownService();
+  let content = turndownService.turndown(contentText);
 
-  // Convert HTML to markdown
-  let content = turndownService.turndown(contentElement.html() || '');
-
-  // Truncate content if needed
+  // Truncate if needed (after markdown conversion to match test expectations)
   if (content.length > maxLength) {
     content = content.substring(0, maxLength) + '...';
   }
@@ -172,8 +168,7 @@ async function fetchWebPage(
   // Extract images if requested
   let images: string[] | undefined;
   if (includeImages) {
-    images = contentElement
-      .find('img')
+    images = $('img')
       .map((_, img) => {
         const src = $(img).attr('src');
         if (src && !src.startsWith('data:')) {
@@ -192,8 +187,7 @@ async function fetchWebPage(
   // Extract links if requested
   let links: string[] | undefined;
   if (includeLinks) {
-    links = contentElement
-      .find('a[href]')
+    links = $('a[href]')
       .map((_, a) => {
         const href = $(a).attr('href');
         if (href && !href.startsWith('#') && !href.startsWith('mailto:')) {
