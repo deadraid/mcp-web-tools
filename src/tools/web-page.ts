@@ -138,17 +138,19 @@ async function fetchWebPage(
   // Extract title
   const title = $('title').text().trim() || 'No title found';
 
-  // Remove unwanted elements
-  $('script, style, nav, footer, aside, .advertisement, .ads').remove();
+  // Remove only the most problematic elements, let turndown handle the rest
+  $('script, style').remove();
 
-  // Simple approach: get main content or body
-  const contentText =
-    $('main, article, [role="main"]').first().text().trim() ||
-    $('body').text().trim();
+  // Get the entire body HTML and convert it - turndown will handle filtering
+  const contentHtml = $('body').html() || '';
 
-  // Convert to markdown using simple approach
-  const turndownService = new TurndownService();
-  let content = turndownService.turndown(contentText);
+  // Convert HTML to markdown with turndown's built-in filtering
+  const turndownService = new TurndownService({
+    headingStyle: 'atx',
+    codeBlockStyle: 'fenced',
+  });
+
+  let content = turndownService.turndown(contentHtml);
 
   // Truncate if needed (after markdown conversion to match test expectations)
   if (content.length > maxLength) {
