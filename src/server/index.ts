@@ -54,13 +54,13 @@ Search the web using DuckDuckGo for any query.
 **Best for:** Finding information across the web, researching topics, getting current information.
 **Not recommended for:** When you already know the exact URL you need (use web_page instead).
 **Common mistakes:** Using web_search when you have a specific URL to scrape.
-**Prompt Example:** "Search for latest TypeScript features released in 2024"
+**Prompt Example:** "Search for latest TypeScript features released"
 **Usage Example:**
 \`\`\`json
 {
   "name": "web_search",
   "arguments": {
-    "query": "latest TypeScript features 2024",
+    "query": "latest TypeScript features",
     "maxResults": 5,
     "time": "m"
   }

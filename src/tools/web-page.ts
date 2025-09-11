@@ -21,8 +21,10 @@ export const webPageSchema = z.object({
   maxLength: z
     .number()
     .optional()
-    .default(8000)
-    .describe('Maximum length of content to return'),
+    .default(50000)
+    .describe(
+      'Maximum length of content to return (default: 50000 characters)'
+    ),
   maxRetries: z
     .number()
     .optional()
@@ -115,7 +117,7 @@ async function fetchWebPage(
 
   const w = new Website(url)
     .withChromeIntercept(true, true)
-    .withBudget({ '*': 1 })
+    .withBudget({ '*': 3 })
     .build();
 
   w.withHeaders({
@@ -138,16 +140,54 @@ async function fetchWebPage(
   // Extract title
   const title = $('title').text().trim() || 'No title found';
 
-  // Remove only the most problematic elements, let turndown handle the rest
-  $('script, style').remove();
+  // Remove problematic elements
+  $(
+    'script, style, nav, header, footer, aside, .advertisement, .ads, .sidebar'
+  ).remove();
 
-  // Get the entire body HTML and convert it - turndown will handle filtering
-  const contentHtml = $('body').html() || '';
+  // Try to find main content area first
+  let contentHtml = '';
+  const mainSelectors = [
+    'main',
+    'article',
+    '[role="main"]',
+    '.main-content',
+    '.content',
+    '.post-content',
+    '.entry-content',
+  ];
 
-  // Convert HTML to markdown with turndown's built-in filtering
+  for (const selector of mainSelectors) {
+    const element = $(selector);
+    if (element.length > 0) {
+      contentHtml = element.html() || '';
+      break;
+    }
+  }
+
+  // If no main content found, fall back to body
+  if (!contentHtml) {
+    contentHtml = $('body').html() || '';
+  }
+
+  // Convert HTML to markdown with optimized settings
   const turndownService = new TurndownService({
     headingStyle: 'atx',
     codeBlockStyle: 'fenced',
+    bulletListMarker: '-',
+    strongDelimiter: '**',
+    emDelimiter: '*',
+  });
+
+  // Configure turndown to keep more content
+  turndownService.keep(['del', 'ins', 'mark', 'sup', 'sub']);
+
+  // Add custom rules for better content preservation
+  turndownService.addRule('preserveCodeBlocks', {
+    filter: ['pre', 'code'],
+    replacement: function (content) {
+      return '\n```\n' + content + '\n```\n';
+    },
   });
 
   let content = turndownService.turndown(contentHtml);
