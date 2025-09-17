@@ -18,11 +18,13 @@ import {
 // Default configuration constants
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_RETRY_DELAY = 1000;
+const DEFAULT_CONCURRENCY = 5;
 
 const mcpConfig = {
   defaults: {
     maxRetries: DEFAULT_MAX_RETRIES,
     retryDelay: DEFAULT_RETRY_DELAY,
+    concurrency: DEFAULT_CONCURRENCY,
   },
 };
 
@@ -116,7 +118,8 @@ Fetch and extract content from a specific web page URL.
   "arguments": {
     "urls": ["https://docs.python.org/3/library/asyncio.html", "https://example.com"],
     "maxLength": 30000,
-    "includeLinks": true
+    "includeLinks": true,
+    "concurrency": 10
   }
 }
 \`\`\`
@@ -155,6 +158,11 @@ Fetch and extract content from a specific web page URL.
               description: 'Base delay in milliseconds between retry attempts',
               default: mcpConfig.defaults.retryDelay,
             },
+            concurrency: {
+              type: 'number',
+              description: 'Maximum number of parallel requests',
+              default: mcpConfig.defaults.concurrency,
+            },
           },
           required: ['urls'],
         },
@@ -178,7 +186,8 @@ Fetch and extract content from a specific web page URL.
       "filenames": ["custom1.txt", "custom2.pdf"],
       "maxRetries": 3,
       "retryDelay": 1000,
-      "timeout": 30000
+      "timeout": 30000,
+      "concurrency": 5
     }
   }
   \`\`\`
@@ -217,6 +226,11 @@ Fetch and extract content from a specific web page URL.
               type: 'number',
               description: 'Request timeout in milliseconds',
               default: 30000,
+            },
+            concurrency: {
+              type: 'number',
+              description: 'Maximum number of parallel downloads',
+              default: mcpConfig.defaults.concurrency,
             },
           },
           required: ['urls', 'directory'],

@@ -140,11 +140,6 @@ async function fetchWebPage(
   // Extract title
   const title = $('title').text().trim() || 'No title found';
 
-  // Remove problematic elements
-  $(
-    'script, style, nav, header, footer, aside, .advertisement, .ads, .sidebar'
-  ).remove();
-
   // Try to find main content area first
   let contentHtml = '';
   const mainSelectors = [
@@ -210,39 +205,43 @@ async function fetchWebPage(
   // Extract images if requested
   let images: string[] | undefined;
   if (includeImages) {
-    images = $('img')
-      .map((_, img) => {
-        const src = $(img).attr('src');
-        if (src && !src.startsWith('data:')) {
-          try {
-            return new URL(src, url).toString();
-          } catch {
-            return null;
-          }
+    const imageUrls: string[] = [];
+    $('img').each((_, img) => {
+      const src = $(img).attr('src');
+      if (src && !src.startsWith('data:')) {
+        try {
+          const resolvedUrl = new URL(src, url).toString();
+          imageUrls.push(resolvedUrl);
+        } catch (error) {
+          console.log(
+            `[web-page] Failed to resolve image URL: ${src} relative to ${url}`,
+            error
+          );
         }
-        return null;
-      })
-      .get()
-      .filter((src): src is string => src !== null);
+      }
+    });
+    images = imageUrls;
   }
 
   // Extract links if requested
   let links: string[] | undefined;
   if (includeLinks) {
-    links = $('a[href]')
-      .map((_, a) => {
-        const href = $(a).attr('href');
-        if (href && !href.startsWith('#') && !href.startsWith('mailto:')) {
-          try {
-            return new URL(href, url).toString();
-          } catch {
-            return null;
-          }
+    const linkUrls: string[] = [];
+    $('a[href]').each((_, a) => {
+      const href = $(a).attr('href');
+      if (href && !href.startsWith('#') && !href.startsWith('mailto:')) {
+        try {
+          const resolvedUrl = new URL(href, url).toString();
+          linkUrls.push(resolvedUrl);
+        } catch (error) {
+          console.log(
+            `[web-page] Failed to resolve link URL: ${href} relative to ${url}`,
+            error
+          );
         }
-        return null;
-      })
-      .get()
-      .filter((href): href is string => href !== null);
+      }
+    });
+    links = linkUrls;
   }
 
   return {

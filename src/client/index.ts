@@ -127,14 +127,23 @@ async function example() {
     });
     console.log('Search results:', searchResult);
 
-    // Example web page fetch
+    // Example web page fetch with concurrency control
     const pageResult = await client.fetchWebPage({
       urls: ['https://example.com'],
       maxLength: 1000,
       includeImages: false,
       includeLinks: false,
+      concurrency: 10, // Control parallel requests
     });
     console.log('Page content:', pageResult);
+
+    // Example download files with concurrency control
+    const downloadResult = await client.downloadFiles({
+      urls: ['https://example.com/file1.txt', 'https://example.com/file2.pdf'],
+      directory: '/tmp/downloads',
+      concurrency: 5, // Control parallel downloads
+    });
+    console.log('Download results:', downloadResult);
   } catch (error) {
     console.error('Error:', error);
   } finally {
