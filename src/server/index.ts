@@ -115,7 +115,7 @@ Fetch and extract content from a specific web page URL.
   "name": "web_page",
   "arguments": {
     "urls": ["https://docs.python.org/3/library/asyncio.html", "https://example.com"],
-    "maxLength": 3000,
+    "maxLength": 30000,
     "includeLinks": true
   }
 }
