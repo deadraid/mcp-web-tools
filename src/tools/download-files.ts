@@ -1,3 +1,4 @@
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import fetch from 'node-fetch';
 import * as fs from 'fs/promises';
@@ -48,6 +49,7 @@ export const downloadFilesSchema = z.object({
 });
 
 export type DownloadFilesInput = z.infer<typeof downloadFilesSchema>;
+export type DownloadFilesArgs = z.input<typeof downloadFilesSchema>;
 
 interface DownloadResult {
   url: string;
@@ -58,18 +60,9 @@ interface DownloadResult {
   error?: string;
 }
 
-interface DownloadFilesResult {
-  content: [
-    {
-      type: 'text';
-      text: string;
-    },
-  ];
-}
-
 export async function downloadFilesTool(
   input: DownloadFilesInput
-): Promise<DownloadFilesResult> {
+): Promise<CallToolResult> {
   const limit = pLimit(input.concurrency);
 
   try {
@@ -123,36 +116,37 @@ export async function downloadFilesTool(
     );
 
     const results = await Promise.all(tasks);
+    const payload = { results };
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(results, null, 2),
+          text: JSON.stringify(payload, null, 2),
         },
       ],
+      structuredContent: payload,
     };
   } catch (error) {
+    const fallbackResult: DownloadResult = {
+      url: '',
+      filepath: '',
+      filename: '',
+      size: 0,
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+
+    const payload = { results: [fallbackResult] };
+
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(
-            [
-              {
-                url: '',
-                filepath: '',
-                filename: '',
-                size: 0,
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-              },
-            ],
-            null,
-            2
-          ),
+          text: JSON.stringify(payload, null, 2),
         },
       ],
+      structuredContent: payload,
     };
   }
 }

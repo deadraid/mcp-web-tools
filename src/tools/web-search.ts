@@ -1,3 +1,4 @@
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { Website } from '@spider-rs/spider-rs';
 // Cheerio core
 import * as cheerio from 'cheerio';
@@ -11,6 +12,8 @@ export const webSearchSchema = z.object({
   query: z.string().describe('Search query to execute'),
   maxResults: z
     .number()
+    .int()
+    .min(1)
     .optional()
     .default(10)
     .describe('Maximum number of results to return'),
@@ -25,6 +28,8 @@ export const webSearchSchema = z.object({
     .describe('Time filter for search results (d, w, m, y)'),
   maxRetries: z
     .number()
+    .int()
+    .min(1)
     .optional()
     .default(3)
     .describe('Maximum number of retry attempts for failed requests'),
@@ -36,6 +41,7 @@ export const webSearchSchema = z.object({
 });
 
 export type WebSearchInput = z.infer<typeof webSearchSchema>;
+export type WebSearchArgs = z.input<typeof webSearchSchema>;
 
 interface SearchResult {
   title: string;
@@ -44,7 +50,15 @@ interface SearchResult {
   source: string;
 }
 
-export async function webSearchTool(input: WebSearchInput) {
+interface ExtractedLink {
+  href: string;
+  title: string;
+  snippet: string;
+}
+
+export async function webSearchTool(
+  input: WebSearchInput
+): Promise<CallToolResult> {
   try {
     const results = await withRetry(
       () => performWebSearch(input),
@@ -52,25 +66,24 @@ export async function webSearchTool(input: WebSearchInput) {
       input.retryDelay
     );
 
+    const payload = {
+      query: input.query,
+      results: results.map((r) => ({
+        title: r.title,
+        url: r.url,
+        snippet: r.snippet,
+        source: r.source,
+      })),
+    };
+
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify(
-            {
-              query: input.query,
-              results: results.map((r) => ({
-                title: r.title,
-                url: r.url,
-                snippet: r.snippet,
-                source: r.source,
-              })),
-            },
-            null,
-            2
-          ),
+          text: JSON.stringify(payload, null, 2),
         },
       ],
+      structuredContent: payload,
     };
   } catch (error) {
     return {
@@ -92,8 +105,18 @@ export async function webSearchTool(input: WebSearchInput) {
 async function performWebSearch(
   input: WebSearchInput
 ): Promise<SearchResult[]> {
-  const maxResults = input.maxResults || 10;
-  const query = input.query;
+  const { query, maxResults, region, time } = input;
+
+  const buildSearchUrl = (baseUrl: string) => {
+    const params = new URLSearchParams({ q: query });
+    if (region) {
+      params.set('kl', region);
+    }
+    if (time) {
+      params.set('df', time);
+    }
+    return `${baseUrl}?${params.toString()}`;
+  };
 
   async function fetchSearch(url: string) {
     const w = new Website(url)
@@ -112,16 +135,12 @@ async function performWebSearch(
     return w.getPages()[0] ?? null;
   }
 
-  const primaryUrl = `https://duckduckgo.com/html/?q=${encodeURIComponent(
-    query
-  )}`;
+  const primaryUrl = buildSearchUrl('https://duckduckgo.com/html/');
   let page = await fetchSearch(primaryUrl);
 
   // Fallback to lite version if needed
   if (!page?.content || (page.statusCode && page.statusCode >= 400)) {
-    const liteUrl = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(
-      query
-    )}`;
+    const liteUrl = buildSearchUrl('https://lite.duckduckgo.com/lite/');
     page = await fetchSearch(liteUrl);
   }
 
@@ -135,21 +154,30 @@ async function performWebSearch(
     baseUrl: string,
     selector: string
   ) => {
-    const extractLink = (_: number, el: Element) => {
+    const extractLink = (_: number, el: Element): ExtractedLink | null => {
       const $el = $(el);
       const hrefAttr = $el.attr('href');
       if (!hrefAttr) return null;
 
       try {
         const url = new URL(hrefAttr, baseUrl);
+        const snippet = extractSnippet($, $el);
 
         if (url.hostname.endsWith('duckduckgo.com') && url.pathname === '/l/') {
           const targetUrl = url.searchParams.get('uddg');
           if (targetUrl) {
-            return { href: targetUrl, text: $el.text().trim() };
+            return {
+              href: targetUrl,
+              title: $el.text().trim(),
+              snippet,
+            };
           }
         }
-        return { href: url.toString(), text: $el.text().trim() };
+        return {
+          href: url.toString(),
+          title: $el.text().trim(),
+          snippet,
+        };
       } catch {
         return null;
       }
@@ -173,9 +201,7 @@ async function performWebSearch(
 
   // Last resort – retry lite interface directly if not already done
   if (!links.length) {
-    const liteUrl = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(
-      query
-    )}`;
+    const liteUrl = buildSearchUrl('https://lite.duckduckgo.com/lite/');
     const litePage = await fetchSearch(liteUrl);
     if (litePage && litePage.content) {
       const $lite = cheerio.load(litePage.content);
@@ -193,9 +219,9 @@ async function performWebSearch(
 
   // Convert to SearchResult format
   const results: SearchResult[] = links.map((link) => ({
-    title: link.text,
+    title: link.title,
     url: link.href,
-    snippet: '', // We could add snippet extraction here if needed
+    snippet: link.snippet,
     source: new URL(link.href).hostname,
   }));
 
@@ -204,4 +230,57 @@ async function performWebSearch(
 
 function isNotNull<T>(value: T | null): value is T {
   return value !== null;
+}
+
+function extractSnippet(
+  $: cheerio.CheerioAPI,
+  linkElement: cheerio.Cheerio<Element>
+): string {
+  const snippetSelectors = [
+    '.result__snippet',
+    '.result__snippet.js-result-snippet',
+    '.result__snippet.js-snippet',
+    '.result__description',
+    '.result-snippet',
+    'td.result-snippet',
+  ];
+
+  const containers = [
+    linkElement.closest('.result'),
+    linkElement.closest('.web-result'),
+    linkElement.closest('.result__body'),
+    linkElement.parent(),
+  ];
+
+  for (const container of containers) {
+    if (!container || !container.length) continue;
+    for (const selector of snippetSelectors) {
+      const text = container.find(selector).first().text().trim();
+      if (text) {
+        return text;
+      }
+    }
+  }
+
+  const tableRow = linkElement.closest('tr');
+  if (tableRow.length) {
+    const snippetRow = tableRow.next('tr');
+    if (snippetRow.length) {
+      const text = snippetRow
+        .find('td.result-snippet, .result-snippet')
+        .first()
+        .text()
+        .trim();
+      if (text) {
+        return text;
+      }
+      const fallbackText = snippetRow.text().trim();
+      if (fallbackText) {
+        return fallbackText;
+      }
+    }
+  }
+
+  const titleAttr = linkElement.attr('title');
+  return titleAttr ? titleAttr.trim() : '';
 }

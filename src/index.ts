@@ -3,5 +3,16 @@ export { MCPWebToolsClient } from './client/index.js';
 export { server } from './server/index.js';
 export { webSearchTool, webSearchSchema } from './tools/web-search.js';
 export { webPageTool, webPageSchema } from './tools/web-page.js';
-export type { WebSearchInput } from './tools/web-search.js';
-export type { WebPageInput } from './tools/web-page.js';
+export {
+  downloadFilesTool,
+  downloadFilesSchema,
+} from './tools/download-files.js';
+export type {
+  WebSearchInput,
+  WebSearchArgs,
+} from './tools/web-search.js';
+export type { WebPageInput, WebPageArgs } from './tools/web-page.js';
+export type {
+  DownloadFilesInput,
+  DownloadFilesArgs,
+} from './tools/download-files.js';

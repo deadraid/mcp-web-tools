@@ -1,3 +1,4 @@
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { Website } from '@spider-rs/spider-rs';
 import * as cheerio from 'cheerio';
 import { z } from 'zod';
@@ -43,6 +44,7 @@ export const webPageSchema = z.object({
 });
 
 export type WebPageInput = z.infer<typeof webPageSchema>;
+export type WebPageArgs = z.input<typeof webPageSchema>;
 
 interface WebPageResult {
   url: string;
@@ -59,7 +61,9 @@ interface WebPageResult {
   error?: string;
 }
 
-export async function webPageTool(input: WebPageInput) {
+export async function webPageTool(
+  input: WebPageInput
+): Promise<CallToolResult> {
   const limit = pLimit(input.concurrency);
   const tasks = input.urls.map((url) =>
     limit(async () => {
@@ -100,13 +104,16 @@ export async function webPageTool(input: WebPageInput) {
         }
   );
 
+  const payload = { results };
+
   return {
     content: [
       {
         type: 'text' as const,
-        text: JSON.stringify(results, null, 2),
+        text: JSON.stringify(payload, null, 2),
       },
     ],
+    structuredContent: payload,
   };
 }
 

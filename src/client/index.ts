@@ -4,38 +4,21 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
 
-import { webPageSchema } from '../tools/web-page.js';
-import { webSearchSchema } from '../tools/web-search.js';
-import { downloadFilesSchema } from '../tools/download-files.js';
-
-interface WebSearchInput {
-  query: string;
-  maxResults?: number;
-  region?: string;
-  time?: string;
-  maxRetries?: number;
-  retryDelay?: number;
-}
-
-interface WebPageInput {
-  urls: string[];
-  includeImages?: boolean;
-  includeLinks?: boolean;
-  maxLength?: number;
-  maxRetries?: number;
-  retryDelay?: number;
-  concurrency?: number;
-}
-
-interface DownloadFilesInput {
-  urls: string[];
-  directory: string;
-  filenames?: string[];
-  maxRetries?: number;
-  retryDelay?: number;
-  timeout?: number;
-  concurrency?: number;
-}
+import {
+  webPageSchema,
+  type WebPageArgs,
+  type WebPageInput,
+} from '../tools/web-page.js';
+import {
+  webSearchSchema,
+  type WebSearchArgs,
+  type WebSearchInput,
+} from '../tools/web-search.js';
+import {
+  downloadFilesSchema,
+  type DownloadFilesArgs,
+  type DownloadFilesInput,
+} from '../tools/download-files.js';
 
 export class MCPWebToolsClient {
   private client: Client;
@@ -76,16 +59,16 @@ export class MCPWebToolsClient {
     return await this.client.listTools();
   }
 
-  async searchWeb(input: WebSearchInput): Promise<unknown> {
-    const validatedInput = webSearchSchema.parse(input);
+  async searchWeb(input: WebSearchArgs): Promise<unknown> {
+    const validatedInput: WebSearchInput = webSearchSchema.parse(input);
     return await this.client.callTool({
       name: 'web_search',
       arguments: validatedInput,
     });
   }
 
-  async fetchWebPage(input: WebPageInput): Promise<unknown> {
-    const validatedInput = webPageSchema.parse(input);
+  async fetchWebPage(input: WebPageArgs): Promise<unknown> {
+    const validatedInput: WebPageInput = webPageSchema.parse(input);
     return await this.client.callTool({
       name: 'web_page',
       arguments: validatedInput,
@@ -101,8 +84,10 @@ export class MCPWebToolsClient {
     }
   }
 
-  async downloadFiles(input: DownloadFilesInput): Promise<unknown> {
-    const validatedInput = downloadFilesSchema.parse(input);
+  async downloadFiles(input: DownloadFilesArgs): Promise<unknown> {
+    const validatedInput: DownloadFilesInput = downloadFilesSchema.parse(
+      input
+    );
     return await this.client.callTool({
       name: 'download_files',
       arguments: validatedInput,

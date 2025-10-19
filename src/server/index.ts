@@ -136,7 +136,7 @@ Fetch and extract content from a specific web page URL.
             maxLength: {
               type: 'number',
               description: 'Maximum length of content to return',
-              default: 5000,
+              default: 50000,
             },
             includeImages: {
               type: 'boolean',
@@ -146,7 +146,7 @@ Fetch and extract content from a specific web page URL.
             includeLinks: {
               type: 'boolean',
               description: 'Include links in the response',
-              default: true,
+              default: false,
             },
             maxRetries: {
               type: 'number',
