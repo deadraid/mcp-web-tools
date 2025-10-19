@@ -52,11 +52,14 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent).toHaveLength(1);
-    expect(parsedContent[0].url).toBe('https://example.com');
-    expect(parsedContent[0].title).toBe('Test Page');
-    expect(parsedContent[0].content).toContain('Main Content');
-    expect(parsedContent[0].metadata.description).toBe('Test description');
+    expect(parsedContent.results).toHaveLength(1);
+    expect(result.structuredContent).toEqual(parsedContent);
+    expect(parsedContent.results[0].url).toBe('https://example.com');
+    expect(parsedContent.results[0].title).toBe('Test Page');
+    expect(parsedContent.results[0].content).toContain('Main Content');
+    expect(parsedContent.results[0].metadata.description).toBe(
+      'Test description'
+    );
     vi.useRealTimers();
   }, 10000);
 
@@ -82,9 +85,10 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent).toHaveLength(2);
-    expect(parsedContent[0].url).toBe('https://example.com');
-    expect(parsedContent[1].url).toBe('https://example.org');
+    expect(parsedContent.results).toHaveLength(2);
+    expect(result.structuredContent).toEqual(parsedContent);
+    expect(parsedContent.results[0].url).toBe('https://example.com');
+    expect(parsedContent.results[1].url).toBe('https://example.org');
     vi.useRealTimers();
   }, 10000);
 
@@ -123,10 +127,11 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent).toHaveLength(1);
-    expect(parsedContent[0].url).toBe('https://error.com');
-    expect(parsedContent[0].error).toBeDefined();
-    expect(parsedContent[0].error).toBe('Network error');
+    expect(parsedContent.results).toHaveLength(1);
+    expect(result.structuredContent).toEqual(parsedContent);
+    expect(parsedContent.results[0].url).toBe('https://error.com');
+    expect(parsedContent.results[0].error).toBeDefined();
+    expect(parsedContent.results[0].error).toBe('Network error');
     vi.useRealTimers();
   }, 10000);
 
@@ -183,11 +188,12 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent).toHaveLength(2);
-    expect(parsedContent[0].url).toBe('https://success.com');
-    expect(parsedContent[0].error).toBeUndefined();
-    expect(parsedContent[1].url).toBe('https://error.com');
-    expect(parsedContent[1].error).toBeDefined();
+    expect(parsedContent.results).toHaveLength(2);
+    expect(result.structuredContent).toEqual(parsedContent);
+    expect(parsedContent.results[0].url).toBe('https://success.com');
+    expect(parsedContent.results[0].error).toBeUndefined();
+    expect(parsedContent.results[1].url).toBe('https://error.com');
+    expect(parsedContent.results[1].error).toBeDefined();
     vi.useRealTimers();
   }, 10000);
 
@@ -235,8 +241,9 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent[0].content.length).toBe(53); // 50 + '...'
-    expect(parsedContent[0].content).toMatch(/.+...$/);
+    const truncated = parsedContent.results[0].content;
+    expect(truncated.length).toBe(53); // 50 + '...'
+    expect(truncated).toMatch(/.+...$/);
     vi.useRealTimers();
   }, 10000);
 
@@ -305,8 +312,9 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent[0].content).toContain('Main Content');
-    expect(parsedContent[0].content).toContain('This is the main content');
+    const content = parsedContent.results[0].content;
+    expect(content).toContain('Main Content');
+    expect(content).toContain('This is the main content');
     
     vi.useRealTimers();
   }, 10000);
@@ -376,12 +384,13 @@ describe('webPageTool', () => {
     // Assert
     expect(result.content[0].type).toBe('text');
     const parsedContent = JSON.parse(result.content[0].text);
-    expect(parsedContent[0].content).toContain('Home');
-    expect(parsedContent[0].content).toContain('About');
-    expect(parsedContent[0].content).toContain('Website Header');
-    expect(parsedContent[0].content).toContain('Sidebar');
-    expect(parsedContent[0].content).toContain('Footer content');
-    expect(parsedContent[0].content).toContain('Main Content');
+    const content = parsedContent.results[0].content;
+    expect(content).toContain('Home');
+    expect(content).toContain('About');
+    expect(content).toContain('Website Header');
+    expect(content).toContain('Sidebar');
+    expect(content).toContain('Footer content');
+    expect(content).toContain('Main Content');
     
     vi.useRealTimers();
   }, 10000);
