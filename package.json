@@ -35,26 +35,26 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.20.1",
+    "@modelcontextprotocol/sdk": "1.24.3",
     "@spider-rs/spider-rs": "0.0.157",
     "cheerio": "1.1.2",
     "node-fetch": "3.3.2",
     "p-limit": "7.2.0",
-    "turndown": "7.2.1",
-    "zod": "4.1.12"
+    "turndown": "7.2.2",
+    "zod": "4.1.13"
   },
   "devDependencies": {
-    "@types/node": "24.8.1",
-    "@types/turndown": "5.0.5",
-    "@typescript-eslint/eslint-plugin": "8.46.1",
-    "@typescript-eslint/parser": "8.46.1",
-    "eslint": "9.38.0",
+    "@types/node": "24.10.1",
+    "@types/turndown": "5.0.6",
+    "@typescript-eslint/eslint-plugin": "8.48.1",
+    "@typescript-eslint/parser": "8.48.1",
+    "eslint": "9.39.1",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.4",
-    "prettier": "3.6.2",
+    "prettier": "3.7.4",
     "typescript": "5.9.3",
-    "vitest": "3.2.4"
+    "vitest": "4.0.15"
   },
   "keywords": [
     "mcp",
